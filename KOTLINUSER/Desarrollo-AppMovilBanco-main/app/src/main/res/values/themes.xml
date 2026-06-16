@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.MiBanco" parent="Theme.Material3.DayNight.NoActionBar">
+    <item name="android:statusBarColor">@android:color/transparent</item>
+    <item name="android:navigationBarColor">@android:color/transparent</item>
+    <item name="android:windowBackground">#020B18</item>
+    </style>
+
+<style name="Theme.MiBanco.Splash" parent="Theme.SplashScreen">
+    <item name="windowSplashScreenBackground">#020B18</item>
+    <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    <item name="windowSplashScreenAnimationDuration">800</item>
+    <item name="postSplashScreenTheme">@style/Theme.MiBanco</item>
+</style>
+</resources>
