@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../core/constants.dart';
 
 class MainLayout extends StatelessWidget {
@@ -16,12 +18,14 @@ class MainLayout extends StatelessWidget {
           Expanded(
             child: Column(
               children: [
-                _buildHeader(),
+                _buildHeader(context),
                 Expanded(
                   child: Container(
                     decoration: const BoxDecoration(
                       color: AppColors.background,
-                      borderRadius: BorderRadius.only(topLeft: Radius.circular(32)),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                      ),
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: child,
@@ -37,6 +41,9 @@ class MainLayout extends StatelessWidget {
 
   Widget _buildSidebar(BuildContext context) {
     final currentPath = GoRouterState.of(context).uri.path;
+    final userEmail =
+        Supabase.instance.client.auth.currentUser?.email ?? 'admin@bbva.test';
+
     return Container(
       width: 280,
       color: AppColors.primaryDark,
@@ -44,52 +51,73 @@ class MainLayout extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
-            padding: EdgeInsets.all(32.0),
+            padding: EdgeInsets.all(32),
             child: Text(
-              'BBVA Dashboard',
+              'BBVA Admin',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
           _NavItem(
-            title: 'Dashboard General',
+            title: 'Dashboard',
             icon: Icons.dashboard_rounded,
             isSelected: currentPath == '/',
             onTap: () => context.go('/'),
           ),
           _NavItem(
-            title: 'Gestión de Asesores',
+            title: 'Creditos',
+            icon: Icons.request_quote_rounded,
+            isSelected: currentPath == '/creditos',
+            onTap: () => context.go('/creditos'),
+          ),
+          _NavItem(
+            title: 'Asesores',
             icon: Icons.work_rounded,
             isSelected: currentPath == '/asesores',
             onTap: () => context.go('/asesores'),
           ),
           _NavItem(
-            title: 'Gestión de Clientes',
+            title: 'Clientes',
             icon: Icons.people_alt_rounded,
             isSelected: currentPath == '/clientes',
             onTap: () => context.go('/clientes'),
           ),
           const Spacer(),
           Padding(
-            padding: const EdgeInsets.all(32.0),
+            padding: const EdgeInsets.all(24),
             child: Row(
               children: [
                 CircleAvatar(
                   backgroundColor: AppColors.accent.withAlpha(51),
                   child: const Icon(Icons.person, color: AppColors.accent),
                 ),
-                const SizedBox(width: 16),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Admin', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    Text('admin@bbva.com', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                  ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Administrador',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        userEmail,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -99,25 +127,39 @@ class MainLayout extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
+    final currentPath = GoRouterState.of(context).uri.path;
+    final title = switch (currentPath) {
+      '/creditos' => 'Estado de Creditos',
+      '/asesores' => 'Gestion de Asesores',
+      '/clientes' => 'Gestion de Clientes',
+      _ => 'Vista General',
+    };
+
     return Container(
       height: 80,
       padding: const EdgeInsets.symmetric(horizontal: 32),
       color: Colors.white,
       child: Row(
         children: [
-          const Text(
-            'Vista General',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
+          Tooltip(
+            message: 'Cerrar sesion',
+            child: IconButton.filledTonal(
+              onPressed: () async {
+                await Supabase.instance.client.auth.signOut();
+                if (context.mounted) context.go('/login');
+              },
+              icon: const Icon(Icons.logout_rounded),
             ),
-            child: const Icon(Icons.notifications_outlined, color: AppColors.primaryDark),
           ),
         ],
       ),
@@ -143,7 +185,8 @@ class _NavItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 28),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.transparent,
           border: Border(
@@ -155,15 +198,19 @@ class _NavItem extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? AppColors.accent : Colors.white70, size: 24),
-            const SizedBox(width: 16),
+            Icon(
+              icon,
+              color: isSelected ? AppColors.accent : Colors.white70,
+              size: 22,
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Text(
                 title,
                 style: TextStyle(
                   color: isSelected ? Colors.white : Colors.white70,
-                  fontSize: 16,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 15,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),

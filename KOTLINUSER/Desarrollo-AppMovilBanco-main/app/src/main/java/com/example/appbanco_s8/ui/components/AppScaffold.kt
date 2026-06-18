@@ -21,7 +21,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.appbanco_s8.navigation.Screen
 import kotlinx.coroutines.launch
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appbanco_s8.ui.viewmodel.ConfigViewModel
 import com.example.appbanco_s8.ui.viewmodel.ConfigUiState
@@ -77,7 +77,7 @@ fun AppScaffold(
     val currentRoute = navBackStackEntry?.destination?.route?.substringBefore("/") ?: ""
 
     val configViewModel: ConfigViewModel = viewModel()
-    val perfilState by configViewModel.uiState.collectAsStateWithLifecycle()
+    val perfilState by configViewModel.uiState.collectAsState()
 
     LaunchedEffect(token) {
         if (token.isNotEmpty() && email.isNotEmpty()) {
@@ -96,7 +96,7 @@ fun AppScaffold(
     val bottomItems = listOf(
         BottomNavItem("Inicio",   Icons.Filled.Home,          Screen.Home.route.substringBefore("/")),
         BottomNavItem("Opera",    Icons.Filled.SwapHoriz,     Screen.Opera.route.substringBefore("/")),
-        BottomNavItem("Para mí",  Icons.Filled.Add,           Screen.Cuenta.route.substringBefore("/"), isCentral = true),
+        BottomNavItem("Credito",  Icons.Filled.CreditScore,   Screen.CreditoHub.route.substringBefore("/"), isCentral = true),
         BottomNavItem("Notifica", Icons.Filled.Notifications, Screen.Notifica.route.substringBefore("/")),
         BottomNavItem("Contacto", Icons.Filled.HeadsetMic,    Screen.Contacto.route)
     )
@@ -142,22 +142,21 @@ fun AppScaffold(
                             items        = bottomItems,
                             currentRoute = currentRoute,
                             onItemClick  = { item ->
-                                if (!item.isCentral) {
-                                    val route = when (item.label) {
-                                        "Inicio"   -> Screen.Home.createRoute(token, email)
-                                        "Opera"    -> Screen.Opera.createRoute(token)
-                                        "Notifica" -> Screen.Notifica.createRoute(token)
-                                        "Contacto" -> Screen.Contacto.route
-                                        else       -> null
-                                    }
-                                    route?.let {
-                                        navController.navigate(it) {
-                                            popUpTo(Screen.Home.route.substringBefore("/")) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState    = true
+                                val route = when (item.label) {
+                                    "Inicio"   -> Screen.Home.createRoute(token, email)
+                                    "Opera"    -> Screen.Opera.createRoute(token)
+                                    "Credito"  -> Screen.CreditoHub.createRoute(token)
+                                    "Notifica" -> Screen.Notifica.createRoute(token)
+                                    "Contacto" -> Screen.Contacto.route
+                                    else       -> null
+                                }
+                                route?.let {
+                                    navController.navigate(it) {
+                                        popUpTo(Screen.Home.route.substringBefore("/")) {
+                                            saveState = true
                                         }
+                                        launchSingleTop = true
+                                        restoreState    = true
                                     }
                                 }
                             }

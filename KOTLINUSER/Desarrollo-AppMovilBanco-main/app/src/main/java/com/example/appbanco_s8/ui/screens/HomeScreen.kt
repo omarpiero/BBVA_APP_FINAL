@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.appbanco_s8.data.model.Cuenta
@@ -57,11 +57,11 @@ fun HomeScreen(
     onMenuClick: () -> Unit = {},
     viewModel: HomeViewModel = viewModel()
 ) {
-    val cuentasState       by viewModel.cuentas.collectAsStateWithLifecycle()
-    val transaccionesState by viewModel.transacciones.collectAsStateWithLifecycle()
+    val cuentasState       by viewModel.cuentas.collectAsState()
+    val transaccionesState by viewModel.transacciones.collectAsState()
 
     val configViewModel: ConfigViewModel = viewModel()
-    val perfilState by configViewModel.uiState.collectAsStateWithLifecycle()
+    val perfilState by configViewModel.uiState.collectAsState()
 
     LaunchedEffect(token) {
         viewModel.cargarDatos(token)
@@ -300,9 +300,9 @@ private fun AccesosRapidosBBVA(
             onClick = { navController.navigate(Screen.Plin.createRoute(token)) }
         )
         AccesoItemBBVA(
-            icon    = Icons.Default.CurrencyExchange,
-            label   = "T-Cambio",
-            onClick = { /* futuro */ }
+            icon    = Icons.Default.CreditScore,
+            label   = "Credito",
+            onClick = { navController.navigate(Screen.CreditoHub.createRoute(token)) }
         )
         AccesoItemBBVA(
             icon    = Icons.Default.MoreHoriz,

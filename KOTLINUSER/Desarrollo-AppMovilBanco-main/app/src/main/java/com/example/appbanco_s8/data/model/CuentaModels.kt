@@ -7,6 +7,7 @@ data class Cuenta(
     val id:           String = "",
     @SerializedName("user_id")
     val userId:       String = "",
+    @SerializedName("tipo_cuenta")
     val tipo:         String = "",
     @SerializedName("numero_cuenta")
     val numeroCuenta: String = "",

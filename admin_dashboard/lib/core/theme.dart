@@ -10,18 +10,24 @@ class AppTheme {
         seedColor: AppColors.primary,
         primary: AppColors.primary,
         secondary: AppColors.secondary,
-        
+
         surface: AppColors.surface,
       ),
       scaffoldBackgroundColor: AppColors.background,
       textTheme: GoogleFonts.interTextTheme().copyWith(
-        displayLarge: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-        titleLarge: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        displayLarge: GoogleFonts.inter(
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        titleLarge: GoogleFonts.inter(
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
         bodyLarge: GoogleFonts.inter(color: AppColors.textPrimary),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         color: AppColors.surface,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -30,22 +36,22 @@ class AppTheme {
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
       ),

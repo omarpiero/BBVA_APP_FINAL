@@ -9,7 +9,7 @@
 
 <style name="Theme.MiBanco.Splash" parent="Theme.SplashScreen">
     <item name="windowSplashScreenBackground">#020B18</item>
-    <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
     <item name="windowSplashScreenAnimationDuration">800</item>
     <item name="postSplashScreenTheme">@style/Theme.MiBanco</item>
 </style>

@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -23,13 +24,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import com.example.appbanco_s8.R
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appbanco_s8.ui.viewmodel.AuthUiState
 import com.example.appbanco_s8.ui.viewmodel.AuthViewModel
@@ -48,7 +53,7 @@ fun LoginScreen(
     onLoginSuccess: (token: String, email: String) -> Unit,
     viewModel: AuthViewModel = viewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
 
     var email           by remember { mutableStateOf("") }
@@ -101,21 +106,18 @@ fun LoginScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-                    // Ícono M estilizado
                     Surface(
                         shape           = RoundedCornerShape(20.dp),
-                        color           = AzulBanco,
+                        color           = Color.White,
                         modifier        = Modifier.size(72.dp),
                         shadowElevation = 12.dp
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text       = "B",
-                                fontSize   = 36.sp,
-                                fontWeight = FontWeight.Bold,
-                                color      = Color.White
-                            )
-                        }
+                        Image(
+                            painter = painterResource(id = R.drawable.logo),
+                            contentDescription = "BBVA Logo",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
                     }
 
                     Spacer(Modifier.height(16.dp))

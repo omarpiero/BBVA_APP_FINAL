@@ -130,7 +130,70 @@ fun AppNavGraph(navController: NavHostController) {
                 onLogout      = doLogout
             ) { padding ->
                 Box(Modifier.fillMaxSize().padding(padding)) {
-                    PrestamoScreen(token = token, navController = navController)
+                    PrestamoScreen(
+                        token = token,
+                        email = emailGlobal,
+                        navController = navController
+                    )
+                }
+            }
+        }
+
+        composable(
+            route     = Screen.CreditoHub.route,
+            arguments = listOf(navArgument("token") { type = NavType.StringType })
+        ) { back ->
+            val token = back.arguments?.getString("token") ?: tokenGlobal
+            AppScaffold(
+                token         = tokenGlobal,
+                email         = emailGlobal,
+                navController = navController,
+                onLogout      = doLogout
+            ) { padding ->
+                Box(Modifier.fillMaxSize().padding(padding)) {
+                    CreditoHubScreen(token = token, navController = navController)
+                }
+            }
+        }
+
+        composable(
+            route     = Screen.SolicitudesCredito.route,
+            arguments = listOf(navArgument("token") { type = NavType.StringType })
+        ) { back ->
+            val token = back.arguments?.getString("token") ?: tokenGlobal
+            AppScaffold(
+                token         = tokenGlobal,
+                email         = emailGlobal,
+                navController = navController,
+                onLogout      = doLogout
+            ) { padding ->
+                Box(Modifier.fillMaxSize().padding(padding)) {
+                    SolicitudesCreditoScreen(
+                        token = token,
+                        email = emailGlobal,
+                        navController = navController
+                    )
+                }
+            }
+        }
+
+        composable(
+            route     = Screen.MisCreditos.route,
+            arguments = listOf(navArgument("token") { type = NavType.StringType })
+        ) { back ->
+            val token = back.arguments?.getString("token") ?: tokenGlobal
+            AppScaffold(
+                token         = tokenGlobal,
+                email         = emailGlobal,
+                navController = navController,
+                onLogout      = doLogout
+            ) { padding ->
+                Box(Modifier.fillMaxSize().padding(padding)) {
+                    MisCreditosScreen(
+                        token = token,
+                        email = emailGlobal,
+                        navController = navController
+                    )
                 }
             }
         }

@@ -15,6 +15,15 @@ sealed class Screen(val route: String) {
     object Prestamo  : Screen("prestamo/{token}") {
         fun createRoute(token: String) = "prestamo/$token"
     }
+    object CreditoHub : Screen("credito/{token}") {
+        fun createRoute(token: String) = "credito/$token"
+    }
+    object SolicitudesCredito : Screen("credito_solicitudes/{token}") {
+        fun createRoute(token: String) = "credito_solicitudes/$token"
+    }
+    object MisCreditos : Screen("mis_creditos/{token}") {
+        fun createRoute(token: String) = "mis_creditos/$token"
+    }
     object Opera     : Screen("opera/{token}") {
         fun createRoute(token: String) = "opera/$token"
     }

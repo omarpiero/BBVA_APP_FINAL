@@ -222,16 +222,31 @@ class _DocumentosScreenState extends State<DocumentosScreen> {
     setState(() => _subiendo = true);
     try {
       final supabase = Supabase.instance.client;
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) {
+        throw StateError('Sesion de asesor no disponible.');
+      }
       for (final entry in _capturas.entries) {
         final tipo = entry.key;
         final path = entry.value;
         final file = File(path);
-        final fileName = '$id/$tipo.jpg';
+        final fileName = '$userId/$id/$tipo.jpg';
         
         await supabase.storage.from('documentos_cliente').upload(
           fileName,
           file,
           fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+        );
+
+        await supabase.from('solicitudes_documentos').upsert(
+          {
+            'solicitud_id': id,
+            'tipo_documento': tipo,
+            'storage_url': fileName,
+            'tamanio_kb': _tamanios[tipo],
+            'nitidez_score': _nitidez[tipo],
+          },
+          onConflict: 'solicitud_id,tipo_documento',
         );
       }
       if (mounted) {

@@ -9,31 +9,28 @@ import 'ui/layout/main_layout.dart';
 import 'ui/views/dashboard_view.dart';
 import 'ui/views/asesores_view.dart';
 import 'ui/views/clientes_view.dart';
+import 'ui/views/creditos_view.dart';
+import 'ui/views/login_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   usePathUrlStrategy();
-  
-  await Supabase.initialize(
-    url: supabaseUrl,
-    publishableKey: supabaseAnonKey,
-  );
+
+  await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
 
   runApp(const AdminDashboardApp());
 }
 
 final _router = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/login',
   routes: [
+    GoRoute(path: '/login', builder: (context, state) => const LoginView()),
     ShellRoute(
       builder: (context, state, child) {
         return MainLayout(child: child);
       },
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const DashboardView(),
-        ),
+        GoRoute(path: '/', builder: (context, state) => const DashboardView()),
         GoRoute(
           path: '/asesores',
           builder: (context, state) => const AsesoresView(),
@@ -41,6 +38,10 @@ final _router = GoRouter(
         GoRoute(
           path: '/clientes',
           builder: (context, state) => const ClientesView(),
+        ),
+        GoRoute(
+          path: '/creditos',
+          builder: (context, state) => const CreditosView(),
         ),
       ],
     ),
