@@ -19,9 +19,15 @@ class CuentaRepository {
         else Result.failure(Exception("Error ${r.code()}"))
     } catch (e: Exception) { Result.failure(e) }
 
-    suspend fun getCuentaAhorro(token: String): Result<CuentaAhorro?> = try {
-        val r = api.getCuentaAhorro("Bearer $token")
+    suspend fun getCuentaAhorro(token: String, clienteId: String): Result<CuentaAhorro?> = try {
+        val r = api.getCuentaAhorro("Bearer $token", "eq.$clienteId")
         if (r.isSuccessful) Result.success(r.body()?.firstOrNull())
+        else Result.failure(Exception("Error ${r.code()}"))
+    } catch (e: Exception) { Result.failure(e) }
+
+    suspend fun getMovimientosCore(token: String, clienteId: String): Result<List<MovimientoCore>> = try {
+        val r = api.getMovimientosCore("Bearer $token", "eq.$clienteId")
+        if (r.isSuccessful) Result.success(r.body() ?: emptyList())
         else Result.failure(Exception("Error ${r.code()}"))
     } catch (e: Exception) { Result.failure(e) }
 }

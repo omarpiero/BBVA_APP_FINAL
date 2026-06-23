@@ -62,11 +62,11 @@ interface SupabaseApi {
         @Query("limit")          limit:    Int    = 10
     ): Response<List<Transaccion>>
 
-    @GET("rest/v1/cuentas_ahorro")
+    @GET("rest/v1/cr_cuentas_ahorro")
     suspend fun getCuentaAhorro(
-        @Header("Authorization") token:  String,
-        @Query("select")         select: String = "*",
-        @Query("limit")          limit:  Int    = 1
+        @Header("Authorization") token: String,
+        @Query("cliente_id") clienteIdEq: String,
+        @Query("select") select: String = "*"
     ): Response<List<CuentaAhorro>>
 
     @GET("rest/v1/tarjetas")
@@ -157,10 +157,40 @@ interface SupabaseApi {
         @Body solicitud: SolicitudCreditoRequest
     ): Response<List<SolicitudCreditoEstado>>
 
+    @GET("rest/v1/cr_movimientos")
+    suspend fun getMovimientosCore(
+        @Header("Authorization") token: String,
+        @Query("cliente_id") clienteIdEq: String,
+        @Query("select") select: String = "*",
+        @Query("order") order: String = "fecha_operacion.desc"
+    ): Response<List<MovimientoCore>>
+
     @Headers("Prefer: return=minimal")
     @POST("rest/v1/sync_outbox")
     suspend fun postSyncOutbox(
         @Header("Authorization") token: String,
         @Body request: SyncOutboxRequest
+    ): Response<Unit>
+
+    @Headers("Prefer: return=minimal")
+    @POST("rest/v1/operaciones_cliente")
+    suspend fun postOperacionesCliente(
+        @Header("Authorization") token: String,
+        @Body request: OperacionClienteRequest
+    ): Response<Unit>
+
+    @POST("rest/v1/rpc/bbva_obtener_estado_bloqueo")
+    suspend fun bbvaObtenerEstadoBloqueo(
+        @Body body: LockoutRpcRequest
+    ): Response<LockoutStatusResponse>
+
+    @POST("rest/v1/rpc/bbva_registrar_intento_fallido")
+    suspend fun bbvaRegistrarIntentoFallido(
+        @Body body: LockoutRpcRequest
+    ): Response<LockoutStatusResponse>
+
+    @POST("rest/v1/rpc/bbva_resetear_intentos_fallidos")
+    suspend fun bbvaResetearIntentosFallidos(
+        @Body body: LockoutRpcRequest
     ): Response<Unit>
 }

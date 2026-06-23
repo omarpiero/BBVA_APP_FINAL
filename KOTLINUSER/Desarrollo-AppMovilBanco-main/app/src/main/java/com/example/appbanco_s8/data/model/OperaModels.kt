@@ -30,3 +30,13 @@ data class Pago(
     val estado:           String = "",
     val fecha:            String = ""
 )
+
+data class OperacionClienteRequest(
+    @SerializedName("cliente_id") val clienteId: String,
+    @SerializedName("cod_cuenta_origen") val codCuentaOrigen: String,
+    @SerializedName("cod_cuenta_destino") val codCuentaDestino: String,
+    val tipo: String,
+    val monto: Double,
+    val moneda: String = "PEN",
+    val estado: String = "pendiente"
+)

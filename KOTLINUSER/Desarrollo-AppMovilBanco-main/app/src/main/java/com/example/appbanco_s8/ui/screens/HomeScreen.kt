@@ -63,8 +63,10 @@ fun HomeScreen(
     val configViewModel: ConfigViewModel = viewModel()
     val perfilState by configViewModel.uiState.collectAsState()
 
+    val saldoAprobado by viewModel.saldoAprobado.collectAsState()
+
     LaunchedEffect(token) {
-        viewModel.cargarDatos(token)
+        viewModel.cargarDatos(token, email)
         configViewModel.cargarPerfil(token, email)
     }
 
@@ -118,7 +120,6 @@ fun HomeScreen(
             }
         }
 
-        // ── 5. Cuentas ──────────────────────────────────────
         item {
             val saldoTotal = when (val s = cuentasState) {
                 is DataUiState.Success -> s.data.sumOf { it.saldo }
@@ -139,6 +140,29 @@ fun HomeScreen(
                         }
                     )
                 }
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text       = "Créditos Aprobados",
+                    color      = BbvaNegro,
+                    fontSize   = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text       = "S/ %,.2f".format(saldoAprobado),
+                    color      = BbvaNegro,
+                    fontSize   = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 

@@ -13,10 +13,10 @@ class BuroViewModel extends StateNotifier<BuroState> {
   final BuroRepository _repo;
   BuroViewModel(this._repo) : super(const BuroState());
 
-  Future<void> consultar(String dni) async {
+  Future<void> consultar(String dni, {String? firmaBase64}) async {
     state = const BuroState(cargando: true);
     try {
-      final r = await _repo.consultar(dni);
+      final r = await _repo.consultar(dni, firmaBase64: firmaBase64);
       state = BuroState(resultado: r);
     } catch (_) {
       state = const BuroState(error: 'No se pudo consultar el buro.');

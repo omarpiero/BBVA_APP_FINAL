@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/network_monitor.dart';
 import '../../../core/sync/sync_nocturna.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../solicitud/data/solicitud_repository.dart';
 import '../domain/cartera_model.dart';
 import 'cartera_local_datasource.dart';
 import 'cartera_remote_datasource.dart';
@@ -21,12 +22,13 @@ class CarteraRepository {
   final CarteraRemoteDataSource _remote;
   final CarteraLocalDataSource _local;
   final NetworkMonitor _network;
+  final SolicitudRepository _solicitudRepo;
 
-  CarteraRepository(this._remote, this._local, this._network);
+  CarteraRepository(this._remote, this._local, this._network, this._solicitudRepo);
 
   /// Sincroniza la cola de visitas pendientes al reconectar (RF-18).
   /// Devuelve cuantas se sincronizaron.
-  Future<int> sincronizarPendientes() async {
+  Future<int> sincronizarPendientes(String asesorId) async {
     if (!await _network.isOnline) return 0;
     final pendientes = await _local.visitasPendientes();
     var ok = 0;
@@ -45,6 +47,13 @@ class CarteraRepository {
         // se reintentara en el siguiente ciclo
       }
     }
+
+    try {
+      await _solicitudRepo.sincronizarBorradoresPendientes(asesorId);
+    } catch (_) {
+      // ignore
+    }
+
     return ok;
   }
 
@@ -60,7 +69,7 @@ class CarteraRepository {
     required DateTime fecha,
   }) async {
     // Antes de leer, vacia la cola offline si hay red (RF-18).
-    await sincronizarPendientes();
+    await sincronizarPendientes(asesorId);
     if (await _network.isOnline) {
       try {
         final items =
@@ -118,5 +127,6 @@ final carteraRepositoryProvider = Provider<CarteraRepository>((ref) {
     CarteraRemoteDataSource(Supabase.instance.client),
     CarteraLocalDataSource(),
     ref.watch(networkMonitorProvider),
+    ref.watch(solicitudRepositoryProvider),
   );
 });

@@ -284,84 +284,145 @@ class _CreditosViewState extends State<CreditosView> {
   }
 
   void _showDetail(Map<String, dynamic> sol) {
+    String currentEstado = sol['estado']?.toString() ?? '-';
+    
     showDialog<void>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(_expediente(sol)),
-          content: SizedBox(
-            width: 520,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            bool isUpdating = false;
+
+            Future<void> cambiarEstado(String nuevoEstado) async {
+              setDialogState(() => isUpdating = true);
+              try {
+                await Supabase.instance.client.rpc('bbva_actualizar_solicitud', params: {
+                  'p_solicitud_id': sol['id'],
+                  'p_estado': nuevoEstado,
+                });
+                setDialogState(() {
+                  currentEstado = nuevoEstado;
+                  isUpdating = false;
+                });
+                _loadSolicitudes();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Estado actualizado a \$nuevoEstado')),
+                  );
+                }
+              } catch (e) {
+                setDialogState(() => isUpdating = false);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al actualizar: \$e')),
+                  );
+                }
+              }
+            }
+
+            return AlertDialog(
+              title: Text(_expediente(sol)),
+              content: SizedBox(
+                width: 520,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _StatusPill(estado: sol['estado']?.toString() ?? '-'),
-                    _InfoChip(
-                      label: 'Canal',
-                      value: sol['canal']?.toString() ?? '-',
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _StatusPill(estado: currentEstado),
+                        _InfoChip(
+                          label: 'Canal',
+                          value: sol['canal']?.toString() ?? '-',
+                        ),
+                        _InfoChip(
+                          label: 'Plazo',
+                          value: '${sol['plazo_meses'] ?? '-'} meses',
+                        ),
+                        _InfoChip(
+                          label: 'TEA',
+                          value: '${sol['tea_referencial'] ?? '-'}%',
+                        ),
+                      ],
                     ),
-                    _InfoChip(
-                      label: 'Plazo',
-                      value: '${sol['plazo_meses'] ?? '-'} meses',
+                    const SizedBox(height: 18),
+                    _DetailRow(label: 'Cliente', value: _cliente(sol)),
+                    _DetailRow(label: 'Asesor', value: _asesor(sol)),
+                    _DetailRow(
+                      label: 'Destino',
+                      value: sol['destino_credito']?.toString() ?? '-',
                     ),
-                    _InfoChip(
-                      label: 'TEA',
-                      value: '${sol['tea_referencial'] ?? '-'}%',
+                    _DetailRow(
+                      label: 'Garantia',
+                      value: sol['garantia']?.toString() ?? '-',
+                    ),
+                    _DetailRow(
+                      label: 'Monto solicitado',
+                      value: _money(
+                        (sol['monto_solicitado'] as num?)?.toDouble() ?? 0,
+                      ),
+                    ),
+                    _DetailRow(
+                      label: 'Monto aprobado',
+                      value: _money(
+                        (sol['monto_aprobado'] as num?)?.toDouble() ?? 0,
+                      ),
+                    ),
+                    _DetailRow(
+                      label: 'Cuota estimada',
+                      value: _money(
+                        (sol['cuota_estimada'] as num?)?.toDouble() ?? 0,
+                      ),
+                    ),
+                    if ((sol['condicion_adicional']?.toString() ?? '').isNotEmpty)
+                      _DetailRow(
+                        label: 'Condicion',
+                        value: sol['condicion_adicional'].toString(),
+                      ),
+                    if ((sol['motivo_rechazo']?.toString() ?? '').isNotEmpty)
+                      _DetailRow(
+                        label: 'Motivo rechazo',
+                        value: sol['motivo_rechazo'].toString(),
+                      ),
+                    const Divider(),
+                    Row(
+                      children: [
+                        const Text('Actualizar estado: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 8),
+                        isUpdating
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                            : DropdownButton<String>(
+                                value: currentEstado,
+                                items: const [
+                                  DropdownMenuItem(value: 'enviado', child: Text('Enviado')),
+                                  DropdownMenuItem(value: 'recibido_comite', child: Text('Recibido comite')),
+                                  DropdownMenuItem(value: 'en_evaluacion', child: Text('En evaluacion')),
+                                  DropdownMenuItem(value: 'aprobado', child: Text('Aprobado')),
+                                  DropdownMenuItem(value: 'condicionado', child: Text('Condicionado')),
+                                  DropdownMenuItem(value: 'rechazado', child: Text('Rechazado')),
+                                  DropdownMenuItem(value: 'desembolsado', child: Text('Desembolsado')),
+                                ],
+                                onChanged: (val) {
+                                  if (val != null && val != currentEstado) {
+                                    cambiarEstado(val);
+                                  }
+                                },
+                              ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
-                _DetailRow(label: 'Cliente', value: _cliente(sol)),
-                _DetailRow(label: 'Asesor', value: _asesor(sol)),
-                _DetailRow(
-                  label: 'Destino',
-                  value: sol['destino_credito']?.toString() ?? '-',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cerrar'),
                 ),
-                _DetailRow(
-                  label: 'Garantia',
-                  value: sol['garantia']?.toString() ?? '-',
-                ),
-                _DetailRow(
-                  label: 'Monto solicitado',
-                  value: _money(
-                    (sol['monto_solicitado'] as num?)?.toDouble() ?? 0,
-                  ),
-                ),
-                _DetailRow(
-                  label: 'Monto aprobado',
-                  value: _money(
-                    (sol['monto_aprobado'] as num?)?.toDouble() ?? 0,
-                  ),
-                ),
-                _DetailRow(
-                  label: 'Cuota estimada',
-                  value: _money(
-                    (sol['cuota_estimada'] as num?)?.toDouble() ?? 0,
-                  ),
-                ),
-                if ((sol['condicion_adicional']?.toString() ?? '').isNotEmpty)
-                  _DetailRow(
-                    label: 'Condicion',
-                    value: sol['condicion_adicional'].toString(),
-                  ),
-                if ((sol['motivo_rechazo']?.toString() ?? '').isNotEmpty)
-                  _DetailRow(
-                    label: 'Motivo rechazo',
-                    value: sol['motivo_rechazo'].toString(),
-                  ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cerrar'),
-            ),
-          ],
+            );
+          }
         );
       },
     );

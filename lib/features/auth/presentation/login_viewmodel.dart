@@ -73,7 +73,7 @@ class LoginViewModel extends StateNotifier<AuthState> {
   }
 
   static const int _maxIntentos = 5;
-  static const Duration _bloqueo = Duration(seconds: 10);
+  static const Duration _bloqueo = Duration(minutes: 5);
 
   /// Restaura sesion vigente al iniciar la app (RF-03).
   Future<void> restaurarSesion() async {
@@ -113,10 +113,36 @@ class LoginViewModel extends StateNotifier<AuthState> {
 
     state = state.copyWith(status: AuthStatus.loading, limpiarError: true);
     try {
+      final client = supabase.Supabase.instance.client;
+      final checkBlockRes = await client.rpc('bbva_obtener_estado_bloqueo', params: {
+        'p_username': email,
+        'p_tipo_usuario': 'asesor',
+      });
+
+      final bool dbBloqueado = checkBlockRes['bloqueado'] as bool? ?? false;
+      if (dbBloqueado) {
+        final hastaStr = checkBlockRes['bloqueado_hasta'] as String?;
+        final hasta = hastaStr != null ? DateTime.tryParse(hastaStr) : null;
+        final actualHasta = hasta ?? DateTime.now().add(const Duration(hours: 24));
+        state = state.copyWith(
+          status: AuthStatus.error,
+          error: 'Usuario bloqueado por seguridad debido a múltiples intentos fallidos.',
+          bloqueadoHasta: actualHasta,
+        );
+        await _repo.guardarEstadoBloqueo(intentos: 5, hasta: actualHasta);
+        return;
+      }
+
       final asesor = await _repo.login(
         email: email,
         password: password,
       );
+
+      await client.rpc('bbva_resetear_intentos_fallidos', params: {
+        'p_username': email,
+        'p_tipo_usuario': 'asesor',
+      });
+
       RealtimeNotificacionesService.iniciar(asesor.id);
       state = state.copyWith(
         status: AuthStatus.authenticated,
@@ -126,33 +152,49 @@ class LoginViewModel extends StateNotifier<AuthState> {
       );
       await _repo.guardarEstadoBloqueo(intentos: 0, hasta: null);
     } on supabase.AuthException catch (e) {
-      final intentos = state.intentosFallidos + 1;
-      final bloquear = intentos >= _maxIntentos;
-      final hasta =
-          bloquear ? DateTime.now().add(_bloqueo) : state.bloqueadoHasta;
+      final client = supabase.Supabase.instance.client;
+      final failRes = await client.rpc('bbva_registrar_intento_fallido', params: {
+        'p_username': email,
+        'p_tipo_usuario': 'asesor',
+      });
+
+      final bool dbBloqueado = failRes['bloqueado'] as bool? ?? false;
+      final hastaStr = failRes['bloqueado_hasta'] as String?;
+      final hasta = hastaStr != null ? DateTime.tryParse(hastaStr) : null;
+      final intentos = failRes['intentos_fallidos'] as int? ?? (state.intentosFallidos + 1);
+      final actualHasta = dbBloqueado ? (hasta ?? DateTime.now().add(const Duration(hours: 24))) : state.bloqueadoHasta;
+
       state = state.copyWith(
         status: AuthStatus.error,
-        error: bloquear
-            ? null
+        error: dbBloqueado
+            ? 'Usuario bloqueado por múltiples intentos fallidos.'
             : '${e.message} (intento $intentos de $_maxIntentos)',
         intentosFallidos: intentos,
-        bloqueadoHasta: hasta,
+        bloqueadoHasta: actualHasta,
       );
-      await _repo.guardarEstadoBloqueo(intentos: intentos, hasta: hasta);
+      await _repo.guardarEstadoBloqueo(intentos: intentos, hasta: actualHasta);
     } catch (e) {
-      final intentos = state.intentosFallidos + 1;
-      final bloquear = intentos >= _maxIntentos;
-      final hasta =
-          bloquear ? DateTime.now().add(_bloqueo) : state.bloqueadoHasta;
+      final client = supabase.Supabase.instance.client;
+      final failRes = await client.rpc('bbva_registrar_intento_fallido', params: {
+        'p_username': email,
+        'p_tipo_usuario': 'asesor',
+      });
+
+      final bool dbBloqueado = failRes['bloqueado'] as bool? ?? false;
+      final hastaStr = failRes['bloqueado_hasta'] as String?;
+      final hasta = hastaStr != null ? DateTime.tryParse(hastaStr) : null;
+      final intentos = failRes['intentos_fallidos'] as int? ?? (state.intentosFallidos + 1);
+      final actualHasta = dbBloqueado ? (hasta ?? DateTime.now().add(const Duration(hours: 24))) : state.bloqueadoHasta;
+
       state = state.copyWith(
         status: AuthStatus.error,
-        error: bloquear
-            ? null
+        error: dbBloqueado
+            ? 'Usuario bloqueado por múltiples intentos fallidos.'
             : '$e',
         intentosFallidos: intentos,
-        bloqueadoHasta: hasta,
+        bloqueadoHasta: actualHasta,
       );
-      await _repo.guardarEstadoBloqueo(intentos: intentos, hasta: hasta);
+      await _repo.guardarEstadoBloqueo(intentos: intentos, hasta: actualHasta);
     }
   }
 

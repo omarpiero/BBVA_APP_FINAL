@@ -110,10 +110,15 @@ class PrestamoRepository {
             }
             Result.success(Unit)
         } else {
-            Result.failure(Exception("Error ${res.code()}: ${res.errorBody()?.string()}"))
+            val errorString = res.errorBody()?.string() ?: ""
+            if (errorString.contains("24 horas", ignoreCase = true)) {
+                Result.failure(Exception("Ya tienes una solicitud en las últimas 24 horas. Por favor espera."))
+            } else {
+                Result.failure(Exception("Error al procesar solicitud. Por favor intenta más tarde."))
+            }
         }
     } catch (e: Exception) {
-        Result.failure(e)
+        Result.failure(Exception("Sin conexión o error de red: ${e.message}"))
     }
 
     private suspend fun resolverCliente(token: String, email: String): ClienteCore {

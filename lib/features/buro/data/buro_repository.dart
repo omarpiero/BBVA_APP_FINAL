@@ -27,7 +27,7 @@ class BuroRepository {
   final SupabaseClient _supabase;
   BuroRepository(this._supabase);
 
-  Future<ResultadoBuro> consultar(String dni, {String? clienteId}) async {
+  Future<ResultadoBuro> consultar(String dni, {String? clienteId, String? firmaBase64}) async {
     final asesorId = _supabase.auth.currentUser?.id;
     if (asesorId == null) {
       throw StateError('Sesion de asesor no disponible.');
@@ -72,6 +72,7 @@ class BuroRepository {
       'dias_mayor_mora': resultado.diasMayorMora,
       'en_lista_negra': resultado.enListaNegra,
       'motivo_bloqueo': resultado.motivoBloqueo,
+      'firma_consentimiento_base64': firmaBase64,
       'resultado_json': {
         'interpretacion': resultado.interpretacion,
         'fuente': 'bbva_casos_credito',

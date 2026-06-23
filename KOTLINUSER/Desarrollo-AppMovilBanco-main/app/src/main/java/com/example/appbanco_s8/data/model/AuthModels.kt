@@ -23,3 +23,14 @@ data class UserData(
     val id:    String = "",
     val email: String = ""
 )
+
+data class LockoutRpcRequest(
+    val p_username: String,
+    val p_tipo_usuario: String
+)
+
+data class LockoutStatusResponse(
+    val intentos_fallidos: Int,
+    val bloqueado: Boolean,
+    val bloqueado_hasta: String?
+)

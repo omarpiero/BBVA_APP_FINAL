@@ -6,26 +6,40 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.appbanco_s8.data.repository.OperaRepository
+import kotlinx.coroutines.launch
 
 private val AzulMarino  = Color(0xFF020B18)
 private val AzulBanco   = Color(0xFF1A5DC8)
 private val GrisTexto   = Color(0xFFB0B8C8)
 private val GrisSurface = Color(0xFF0D1F3C)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OperaScreen(token: String, navController: NavHostController) {
+fun OperaScreen(token: String, email: String, navController: NavHostController) {
+    val scope = rememberCoroutineScope()
+    var showTransferDialog by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var loading by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+
+    var origen by remember { mutableStateOf("") }
+    var destino by remember { mutableStateOf("") }
+    var monto by remember { mutableStateOf("") }
 
     data class OperaItem(val icon: ImageVector, val label: String)
 
@@ -42,6 +56,135 @@ fun OperaScreen(token: String, navController: NavHostController) {
         OperaItem(Icons.Default.Link,              "Vincular tarjeta"),
         OperaItem(Icons.Default.FlightTakeoff,     "Transferir al exterior")
     )
+
+    if (showTransferDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!loading) showTransferDialog = false },
+            title = { Text("Transferir Dinero", color = Color.White, fontWeight = FontWeight.Bold) },
+            containerColor = GrisSurface,
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Ingresa los datos para realizar la transferencia:", color = GrisTexto, fontSize = 13.sp)
+
+                    OutlinedTextField(
+                        value = origen,
+                        onValueChange = { origen = it },
+                        label = { Text("Cuenta Origen (ej. ahorros)") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = AzulBanco,
+                            unfocusedBorderColor = GrisTexto,
+                            focusedLabelColor = AzulBanco,
+                            unfocusedLabelColor = GrisTexto
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = destino,
+                        onValueChange = { destino = it },
+                        label = { Text("Cuenta Destino") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = AzulBanco,
+                            unfocusedBorderColor = GrisTexto,
+                            focusedLabelColor = AzulBanco,
+                            unfocusedLabelColor = GrisTexto
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = monto,
+                        onValueChange = { monto = it },
+                        label = { Text("Monto (S/)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = AzulBanco,
+                            unfocusedBorderColor = GrisTexto,
+                            focusedLabelColor = AzulBanco,
+                            unfocusedLabelColor = GrisTexto
+                        )
+                    )
+
+                    if (errorMsg != null) {
+                        Text(errorMsg!!, color = Color.Red, fontSize = 12.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val mVal = monto.toDoubleOrNull()
+                        if (origen.isNotBlank() && destino.isNotBlank() && mVal != null && mVal > 0) {
+                            loading = true
+                            errorMsg = null
+                            scope.launch {
+                                val repo = OperaRepository()
+                                val res = repo.registrarOperacion(
+                                    token = token,
+                                    email = email,
+                                    codCuentaOrigen = origen,
+                                    codCuentaDestino = destino,
+                                    tipo = "transferencia",
+                                    monto = mVal
+                                )
+                                loading = false
+                                if (res.isSuccess) {
+                                    showTransferDialog = false
+                                    showSuccessDialog = true
+                                    origen = ""
+                                    destino = ""
+                                    monto = ""
+                                } else {
+                                    errorMsg = res.exceptionOrNull()?.message ?: "Error al transferir"
+                                }
+                            }
+                        } else {
+                            errorMsg = "Por favor completa todos los campos correctamente."
+                        }
+                    },
+                    enabled = !loading,
+                    colors = ButtonDefaults.buttonColors(containerColor = AzulBanco)
+                ) {
+                    if (loading) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                    } else {
+                        Text("Transferir")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showTransferDialog = false },
+                    enabled = !loading
+                ) {
+                    Text("Cancelar", color = GrisTexto)
+                }
+            }
+        )
+    }
+
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false },
+            title = { Text("Operación Exitosa", color = Color.White, fontWeight = FontWeight.Bold) },
+            containerColor = GrisSurface,
+            text = {
+                Text("La transferencia se ha registrado y encolado correctamente en el sistema.", color = GrisTexto)
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showSuccessDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = AzulBanco)
+                ) {
+                    Text("Entendido")
+                }
+            }
+        )
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -85,7 +228,11 @@ fun OperaScreen(token: String, navController: NavHostController) {
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { },
+                                .clickable {
+                                    if (item.label == "Transferir") {
+                                        showTransferDialog = true
+                                    }
+                                },
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Box(

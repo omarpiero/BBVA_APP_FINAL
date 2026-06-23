@@ -93,33 +93,64 @@ class _TransmisionScreenState extends ConsumerState<TransmisionScreen> {
               ),
             ],
             if (terminado && _creada != null)
-              Card(
-                color: AppColors.success.withValues(alpha: 0.1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppColors.success),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.check_circle,
-                          color: AppColors.success, size: 40),
-                      const SizedBox(height: 8),
-                      Text('Expediente ${_creada!.numeroExpediente}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16)),
-                      const Text('Tiempo estimado de respuesta: 24 h',
-                          style: TextStyle(color: AppColors.textSecondary)),
-                      const SizedBox(height: 12),
-                      FilledButton(
-                        onPressed: () => context.go('/documentos', extra: _creada!.id),
-                        child: const Text('Subir Documentos'),
+              _creada!.estado == 'pendiente_sync'
+                  ? Card(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: AppColors.primary),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            const Icon(Icons.cloud_off,
+                                color: AppColors.primary, size: 40),
+                            const SizedBox(height: 8),
+                            const Text('Guardado en borrador (Offline)',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                            const SizedBox(height: 4),
+                            const Text(
+                                'La solicitud se guardó localmente. Se enviará automáticamente cuando recuperes la conexión.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: AppColors.textSecondary)),
+                            const SizedBox(height: 12),
+                            FilledButton(
+                              onPressed: () => context.go('/cartera'),
+                              child: const Text('Volver a Cartera'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : Card(
+                      color: AppColors.success.withValues(alpha: 0.1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: AppColors.success),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            const Icon(Icons.check_circle,
+                                color: AppColors.success, size: 40),
+                            const SizedBox(height: 8),
+                            Text('Expediente ${_creada!.numeroExpediente}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                            const Text('Tiempo estimado de respuesta: 24 h',
+                                style: TextStyle(color: AppColors.textSecondary)),
+                            const SizedBox(height: 12),
+                            FilledButton(
+                              onPressed: () => context.go('/documentos', extra: _creada!.id),
+                              child: const Text('Subir Documentos'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
           ],
         ),
       ),
@@ -134,6 +165,16 @@ class _TransmisionScreenState extends ConsumerState<TransmisionScreen> {
       _Estado.enProceso => (Icons.autorenew, AppColors.primary),
       _Estado.pendiente => (Icons.radio_button_unchecked, AppColors.neutral),
     };
+
+    String textoPaso = _pasos[i];
+    if (_creada?.estado == 'pendiente_sync') {
+      if (i == 2) textoPaso = 'Registrado localmente (Offline)';
+      if (i == 3) textoPaso = 'Expediente temporal asignado';
+      if (i == 4) textoPaso = 'Listo para sincronizar';
+    } else if (i == 1 && estado == _Estado.completado) {
+      textoPaso = 'Subiendo documentos (4 de 4)';
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -147,9 +188,7 @@ class _TransmisionScreenState extends ConsumerState<TransmisionScreen> {
               : Icon(icon, color: color),
           const SizedBox(width: 14),
           Text(
-            i == 1 && estado == _Estado.completado
-                ? 'Subiendo documentos (4 de 4)'
-                : _pasos[i],
+            textoPaso,
             style: TextStyle(
               fontWeight:
                   estado == _Estado.enProceso ? FontWeight.w700 : FontWeight.w500,

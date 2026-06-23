@@ -10,15 +10,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.appbanco_s8.ui.components.AppScaffold
 import com.example.appbanco_s8.ui.screens.*
+import com.example.appbanco_s8.data.local.PrefsManager
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
 
-    var tokenGlobal by remember { mutableStateOf("") }
-    var emailGlobal by remember { mutableStateOf("") }
+    var tokenGlobal by remember { mutableStateOf(PrefsManager.getToken() ?: "") }
+    var emailGlobal by remember { mutableStateOf(PrefsManager.getEmail() ?: "") }
 
     // ── Lambda de logout reutilizable ────────────────────────
     val doLogout: () -> Unit = {
+        PrefsManager.clear()
         tokenGlobal = ""
         emailGlobal = ""
         navController.navigate(Screen.Login.route) {
@@ -26,15 +28,23 @@ fun AppNavGraph(navController: NavHostController) {
         }
     }
 
+    val startDest = if (tokenGlobal.isNotEmpty() && emailGlobal.isNotEmpty()) {
+        Screen.Home.createRoute(tokenGlobal, emailGlobal)
+    } else {
+        Screen.Login.route
+    }
+
     NavHost(
         navController    = navController,
-        startDestination = Screen.Login.route
+        startDestination = startDest
     ) {
 
         // ── Login — sin scaffold ─────────────────────────────
         composable(Screen.Login.route) {
             LoginScreen(
                 onLoginSuccess = { token, email ->
+                    PrefsManager.saveToken(token)
+                    PrefsManager.saveEmail(email)
                     tokenGlobal = token
                     emailGlobal = email
                     navController.navigate(Screen.Home.createRoute(token, email)) {
@@ -94,7 +104,7 @@ fun AppNavGraph(navController: NavHostController) {
                 onLogout      = doLogout
             ) { padding ->
                 Box(Modifier.fillMaxSize().padding(padding)) {
-                    CuentaScreen(token = token, navController = navController)
+                    CuentaScreen(token = token, email = emailGlobal, navController = navController)
                 }
             }
         }
@@ -211,7 +221,7 @@ fun AppNavGraph(navController: NavHostController) {
                 onLogout      = doLogout
             ) { padding ->
                 Box(Modifier.fillMaxSize().padding(padding)) {
-                    OperaScreen(token = token, navController = navController)
+                    OperaScreen(token = token, email = emailGlobal, navController = navController)
                 }
             }
         }

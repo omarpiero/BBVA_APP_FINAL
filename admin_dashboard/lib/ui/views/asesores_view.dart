@@ -99,6 +99,7 @@ class _AsesoresViewState extends State<AsesoresView> {
                     DataColumn(label: Text('Apellidos')),
                     DataColumn(label: Text('Perfil')),
                     DataColumn(label: Text('Activo')),
+                    DataColumn(label: Text('Acciones')),
                   ],
                   rows:
                       asesores.map((a) {
@@ -122,6 +123,13 @@ class _AsesoresViewState extends State<AsesoresView> {
                                 size: 20,
                               ),
                             ),
+                            DataCell(
+                              IconButton(
+                                icon: const Icon(Icons.person_add_alt_1_rounded, color: AppColors.primary),
+                                tooltip: 'Asignar Cliente',
+                                onPressed: () => _mostrarAsignarCliente(a),
+                              ),
+                            ),
                           ],
                         );
                       }).toList(),
@@ -131,6 +139,175 @@ class _AsesoresViewState extends State<AsesoresView> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _mostrarAsignarCliente(Map<String, dynamic> asesor) async {
+    List<Map<String, dynamic>> clientes = [];
+    bool loadingClientes = true;
+    String? errorClientes;
+    String? selectedClienteId;
+    String selectedTipo = 'NUEVA_SOLICITUD';
+    String searchQuery = '';
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            if (loadingClientes) {
+              Supabase.instance.client
+                  .from('clientes')
+                  .select('id, nombres, apellidos, numero_documento')
+                  .order('nombres')
+                  .then((res) {
+                setStateDialog(() {
+                  clientes = List<Map<String, dynamic>>.from(res);
+                  loadingClientes = false;
+                });
+              }).catchError((err) {
+                setStateDialog(() {
+                  errorClientes = err.toString();
+                  loadingClientes = false;
+                });
+              });
+
+              return const AlertDialog(
+                title: Text('Cargando Clientes'),
+                content: SizedBox(
+                  height: 100,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              );
+            }
+
+            if (errorClientes != null) {
+              return AlertDialog(
+                title: const Text('Error'),
+                content: Text(errorClientes!),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cerrar'),
+                  ),
+                ],
+              );
+            }
+
+            final filteredClientes = clientes.where((c) {
+              final term = searchQuery.toLowerCase();
+              final nom = '${c['nombres'] ?? ''} ${c['apellidos'] ?? ''}'.toLowerCase();
+              final doc = (c['numero_documento'] ?? '').toString().toLowerCase();
+              return nom.contains(term) || doc.contains(term);
+            }).toList();
+
+            return AlertDialog(
+              title: Text('Asignar Cliente a ${asesor['nombres']}'),
+              content: SizedBox(
+                width: 500,
+                height: 400,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Buscar Cliente',
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: (val) {
+                        setStateDialog(() {
+                          searchQuery = val;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedTipo,
+                      decoration: const InputDecoration(labelText: 'Tipo de Gestión'),
+                      items: const [
+                        DropdownMenuItem(value: 'RENOVACION', child: Text('RENOVACION')),
+                        DropdownMenuItem(value: 'AMPLIACION', child: Text('AMPLIACION')),
+                        DropdownMenuItem(value: 'NUEVA_SOLICITUD', child: Text('NUEVA_SOLICITUD')),
+                        DropdownMenuItem(value: 'SEGUIMIENTO', child: Text('SEGUIMIENTO')),
+                        DropdownMenuItem(value: 'RECUPERACION_MORA', child: Text('RECUPERACION_MORA')),
+                        DropdownMenuItem(value: 'DESERTOR', child: Text('DESERTOR')),
+                      ],
+                      onChanged: (val) {
+                        setStateDialog(() {
+                          selectedTipo = val!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    const Text('Selecciona un cliente:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: ListView.builder(
+                          itemCount: filteredClientes.length,
+                          itemBuilder: (context, index) {
+                            final c = filteredClientes[index];
+                            final isSelected = c['id'] == selectedClienteId;
+                            return ListTile(
+                              selected: isSelected,
+                              selectedColor: Colors.white,
+                              selectedTileColor: AppColors.primary,
+                              title: Text('${c['nombres']} ${c['apellidos']}'),
+                              subtitle: Text('DNI: ${c['numero_documento'] ?? '-'}'),
+                              onTap: () {
+                                setStateDialog(() {
+                                  selectedClienteId = c['id'] as String;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: selectedClienteId == null
+                      ? null
+                      : () async {
+                          final messenger = ScaffoldMessenger.of(context);
+                          Navigator.pop(context);
+                          try {
+                            await Supabase.instance.client.rpc('bbva_asignar_cartera', params: {
+                              'p_asesor_id': asesor['id'],
+                              'p_cliente_id': selectedClienteId,
+                              'p_tipo_gestion': selectedTipo,
+                            });
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text('Cliente asignado correctamente')),
+                            );
+                          } on PostgrestException catch (e) {
+                            messenger.showSnackBar(
+                              SnackBar(content: Text(e.message)),
+                            );
+                          } catch (e) {
+                            messenger.showSnackBar(
+                              SnackBar(content: Text('Error al asignar: $e')),
+                            );
+                          }
+                        },
+                  child: const Text('Asignar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

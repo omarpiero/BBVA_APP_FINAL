@@ -85,9 +85,12 @@ class _BuroScreenState extends ConsumerState<BuroScreen> {
                     state.cargando ||
                     _dni.text.trim().length != 8)
                 ? null
-                : () => ref
-                    .read(buroViewModelProvider.notifier)
-                    .consultar(_dni.text.trim()),
+                : () async {
+                    final base64Firma = await _firma.toPngBase64();
+                    ref
+                        .read(buroViewModelProvider.notifier)
+                        .consultar(_dni.text.trim(), firmaBase64: base64Firma);
+                  },
             icon: state.cargando
                 ? const SizedBox(
                     width: 18,

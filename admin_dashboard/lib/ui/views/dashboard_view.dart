@@ -85,9 +85,11 @@ class _DashboardViewState extends State<DashboardView> {
               estado == 'recibido_comite' ||
               estado == 'en_evaluacion';
         }).length;
-    final montoSolicitado = solicitudes.fold<double>(
+    final ventasTotales = solicitudes
+        .where((s) => s['estado'] == 'aprobado' || s['estado'] == 'desembolsado')
+        .fold<double>(
       0,
-      (sum, s) => sum + ((s['monto_solicitado'] as num?)?.toDouble() ?? 0),
+      (sum, s) => sum + ((s['monto_aprobado'] as num?)?.toDouble() ?? 0),
     );
 
     return RefreshIndicator(
@@ -126,8 +128,8 @@ class _DashboardViewState extends State<DashboardView> {
               const SizedBox(width: 16),
               Expanded(
                 child: _StatCard(
-                  title: 'Monto solicitado',
-                  value: _money(montoSolicitado),
+                  title: 'Ventas (Aprobadas)',
+                  value: _money(ventasTotales),
                   icon: Icons.payments_rounded,
                   color: AppColors.secondary,
                 ),

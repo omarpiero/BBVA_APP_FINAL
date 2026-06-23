@@ -23,50 +23,6 @@ import com.example.appbanco_s8.ui.viewmodel.DataUiState
 import com.example.appbanco_s8.ui.viewmodel.PrestamoViewModel
 import java.util.Locale
 
-private data class CasoCreditoPreset(
-    val label: String,
-    val email: String,
-    val monto: Double,
-    val plazo: Int,
-    val tea: Double,
-    val gastos: Double,
-    val destino: String,
-    val garantia: String
-)
-
-private val casosCredito = listOf(
-    CasoCreditoPreset(
-        label = "Caso 1",
-        email = "caso01.cliente@bbva.pe",
-        monto = 1000.0,
-        plazo = 12,
-        tea = 43.92,
-        gastos = 900.0,
-        destino = "Capital de trabajo: compra de mercaderia",
-        garantia = "sin garantia"
-    ),
-    CasoCreditoPreset(
-        label = "Caso 2",
-        email = "caso02.cliente@bbva.pe",
-        monto = 3000.0,
-        plazo = 12,
-        tea = 40.92,
-        gastos = 1400.0,
-        destino = "Compra de cocina industrial",
-        garantia = "sin garantia"
-    ),
-    CasoCreditoPreset(
-        label = "Caso 3",
-        email = "caso03.cliente@bbva.pe",
-        monto = 5000.0,
-        plazo = 18,
-        tea = 43.92,
-        gastos = 1800.0,
-        destino = "Maquinaria: sierra y cepillo",
-        garantia = "sin garantia"
-    )
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrestamoScreen(
@@ -75,7 +31,6 @@ fun PrestamoScreen(
     navController: NavHostController,
     viewModel: PrestamoViewModel = viewModel()
 ) {
-    var presetActivo by remember { mutableStateOf("Manual") }
     var montoStr by remember { mutableStateOf("") }
     var plazoStr by remember { mutableStateOf("12") }
     var destino by remember { mutableStateOf("Capital de trabajo") }
@@ -85,22 +40,10 @@ fun PrestamoScreen(
     var cuota by remember { mutableStateOf(0.0) }
 
     val solicitudState by viewModel.solicitudState.collectAsState()
-    fun aplicarPreset(preset: CasoCreditoPreset) {
-        presetActivo = preset.label
-        montoStr = preset.monto.toInt().toString()
-        plazoStr = preset.plazo.toString()
-        destino = preset.destino
-        garantia = preset.garantia
-        gastosStr = preset.gastos.toInt().toString()
-        tea = preset.tea
-    }
-
-    LaunchedEffect(token, email) {
-        casosCredito.firstOrNull { it.email.equals(email, ignoreCase = true) }
-            ?.let { aplicarPreset(it) }
-    }
+    var validationError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(montoStr, plazoStr, tea) {
+        validationError = null
         val monto = montoStr.toDoubleOrNull() ?: 0.0
         val plazo = plazoStr.toIntOrNull() ?: 0
         cuota = if (monto > 0 && plazo > 0) viewModel.calcularCuota(monto, plazo, tea) else 0.0
@@ -127,34 +70,11 @@ fun PrestamoScreen(
             modifier = Modifier.padding(bottom = 14.dp)
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            casosCredito.forEach { preset ->
-                FilterChip(
-                    selected = presetActivo == preset.label,
-                    onClick = { aplicarPreset(preset) },
-                    label = { Text(preset.label) }
-                )
-            }
-            FilterChip(
-                selected = presetActivo == "Manual",
-                onClick = { presetActivo = "Manual" },
-                label = { Text("Manual") }
-            )
-        }
-
         Spacer(modifier = Modifier.height(14.dp))
 
         OutlinedTextField(
             value = montoStr,
-            onValueChange = {
-                presetActivo = "Manual"
-                montoStr = it
-            },
+            onValueChange = { montoStr = it },
             label = { Text("Monto a solicitar (S/)") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             colors = fieldColors(),
@@ -165,10 +85,7 @@ fun PrestamoScreen(
 
         OutlinedTextField(
             value = plazoStr,
-            onValueChange = {
-                presetActivo = "Manual"
-                plazoStr = it
-            },
+            onValueChange = { plazoStr = it },
             label = { Text("Plazo en meses") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             colors = fieldColors(),
@@ -179,10 +96,7 @@ fun PrestamoScreen(
 
         OutlinedTextField(
             value = gastosStr,
-            onValueChange = {
-                presetActivo = "Manual"
-                gastosStr = it
-            },
+            onValueChange = { gastosStr = it },
             label = { Text("Gasto mensual (S/)") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             colors = fieldColors(),
@@ -193,10 +107,7 @@ fun PrestamoScreen(
 
         OutlinedTextField(
             value = destino,
-            onValueChange = {
-                presetActivo = "Manual"
-                destino = it
-            },
+            onValueChange = { destino = it },
             label = { Text("Destino del credito") },
             colors = fieldColors(),
             modifier = Modifier.fillMaxWidth()
@@ -206,10 +117,7 @@ fun PrestamoScreen(
 
         OutlinedTextField(
             value = garantia,
-            onValueChange = {
-                presetActivo = "Manual"
-                garantia = it
-            },
+            onValueChange = { garantia = it },
             label = { Text("Garantia") },
             colors = fieldColors(),
             modifier = Modifier.fillMaxWidth()
@@ -220,18 +128,12 @@ fun PrestamoScreen(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
                 selected = tea == 43.92,
-                onClick = {
-                    presetActivo = "Manual"
-                    tea = 43.92
-                },
+                onClick = { tea = 43.92 },
                 label = { Text("Sin seguro 43.92%") }
             )
             FilterChip(
                 selected = tea == 40.92,
-                onClick = {
-                    presetActivo = "Manual"
-                    tea = 40.92
-                },
+                onClick = { tea = 40.92 },
                 label = { Text("Con seguro 40.92%") }
             )
         }
@@ -265,7 +167,13 @@ fun PrestamoScreen(
                 val monto = montoStr.toDoubleOrNull() ?: 0.0
                 val plazo = plazoStr.toIntOrNull() ?: 0
                 val gastos = gastosStr.toDoubleOrNull() ?: 0.0
-                if (monto >= 500 && plazo > 0) {
+                
+                if (monto < 500) {
+                    validationError = "El monto mínimo a solicitar es S/ 500.00"
+                } else if (plazo <= 0) {
+                    validationError = "El plazo debe ser mayor a 0 meses"
+                } else {
+                    validationError = null
                     viewModel.enviarSolicitud(
                         token = token,
                         email = email,
@@ -287,6 +195,15 @@ fun PrestamoScreen(
         }
 
         Spacer(modifier = Modifier.height(12.dp))
+
+        if (validationError != null) {
+            Text(
+                text = validationError!!,
+                color = Color(0xFFFF6B6B),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
         when (solicitudState) {
             is DataUiState.Success -> Text(

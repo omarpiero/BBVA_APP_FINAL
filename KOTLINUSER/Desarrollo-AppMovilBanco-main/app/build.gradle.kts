@@ -84,4 +84,6 @@ dependencies {
     //Material3
     implementation("com.google.android.material:material:1.11.0")
 
+    // Security Crypto
+    implementation("androidx.security:security-crypto:1.0.0")
 }

@@ -29,15 +29,34 @@ data class Transaccion(
 
 data class CuentaAhorro(
     val id:            String = "",
-    @SerializedName("user_id")
+    @SerializedName("cliente_id")
     val userId:        String = "",
+    @SerializedName("saldo_capital")
     val saldo:         Double = 0.0,
-    @SerializedName("meta_ahorro")
-    val metaAhorro:    Double = 0.0,
-    @SerializedName("tasa_interes")
+    @SerializedName("tea")
     val tasaInteres:   Double = 0.0,
-    @SerializedName("fecha_apertura")
-    val fechaApertura: String = ""
+    @SerializedName("tipo_cuenta")
+    val tipoCuenta:    String = "",
+    @SerializedName("moneda")
+    val moneda:        String = ""
 ) {
+    val metaAhorro:    Double = 10000.0
     fun porcentaje() = (saldo / metaAhorro).coerceIn(0.0, 1.0).toFloat()
 }
+
+data class MovimientoCore(
+    val id: String = "",
+    @SerializedName("cod_operacion")
+    val codOperacion: String = "",
+    @SerializedName("cliente_id")
+    val clienteId: String = "",
+    @SerializedName("cod_cuenta")
+    val codCuenta: String = "",
+    val tipo: String = "",
+    val concepto: String = "",
+    val canal: String = "",
+    val monto: Double = 0.0,
+    val moneda: String = "PEN",
+    @SerializedName("fecha_operacion")
+    val fechaOperacion: String = ""
+)

@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
@@ -23,6 +25,31 @@ class SignatureController extends ChangeNotifier {
   void limpiar() {
     trazos.clear();
     notifyListeners();
+  }
+
+  Future<String?> toPngBase64() async {
+    if (isEmpty) return null;
+
+    final recorder = ui.PictureRecorder();
+    final canvas = ui.Canvas(recorder, const ui.Rect.fromLTWH(0, 0, 300, 150));
+
+    final paint = ui.Paint()
+      ..color = Colors.black
+      ..strokeWidth = 2.5
+      ..strokeCap = ui.StrokeCap.round
+      ..style = ui.PaintingStyle.stroke;
+
+    for (final trazo in trazos) {
+      for (var i = 0; i < trazo.length - 1; i++) {
+        canvas.drawLine(trazo[i], trazo[i + 1], paint);
+      }
+    }
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(300, 150);
+    final pngBytes = await img.toByteData(format: ui.ImageByteFormat.png);
+    if (pngBytes == null) return null;
+    return base64Encode(pngBytes.buffer.asUint8List());
   }
 }
 
