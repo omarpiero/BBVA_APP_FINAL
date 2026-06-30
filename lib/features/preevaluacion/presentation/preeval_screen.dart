@@ -129,7 +129,7 @@ class _PreEvalScreenState extends ConsumerState<PreEvalScreen> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            initialValue: _tipoNegocio,
+            value: _tipoNegocio,
             decoration: const InputDecoration(labelText: 'Tipo de negocio'),
             items: const [
               DropdownMenuItem(value: 'Comercio', child: Text('Comercio')),
@@ -146,7 +146,7 @@ class _PreEvalScreenState extends ConsumerState<PreEvalScreen> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<int>(
-                  initialValue: _antiguedadAnios,
+                  value: _antiguedadAnios,
                   decoration: const InputDecoration(labelText: 'Antiguedad (anos)'),
                   items: List.generate(31, (i) => i)
                       .map((a) => DropdownMenuItem(value: a, child: Text('$a')))
@@ -157,7 +157,7 @@ class _PreEvalScreenState extends ConsumerState<PreEvalScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: DropdownButtonFormField<int>(
-                  initialValue: _antiguedadMeses,
+                  value: _antiguedadMeses,
                   decoration: const InputDecoration(labelText: 'Meses'),
                   items: List.generate(12, (i) => i)
                       .map((m) => DropdownMenuItem(value: m, child: Text('$m')))

@@ -41,7 +41,7 @@ class _SimuladorScreenState extends ConsumerState<SimuladorScreen> {
             onChanged: (v) => setState(() => _monto = v),
           ),
           DropdownButtonFormField<int>(
-            initialValue: _plazo,
+            value: _plazo,
             decoration: const InputDecoration(labelText: 'Plazo (meses)'),
             items: const [3, 6, 12, 18, 24, 36, 48, 60]
                 .map((m) => DropdownMenuItem(value: m, child: Text('$m meses')))

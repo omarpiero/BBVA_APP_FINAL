@@ -137,7 +137,7 @@ class _MoraTile extends ConsumerWidget {
                   style: const TextStyle(fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: tipo,
+                value: tipo,
                 decoration: const InputDecoration(labelText: 'Tipo de gestion'),
                 items: const [
                   DropdownMenuItem(value: 'visita', child: Text('Visita')),
@@ -148,7 +148,7 @@ class _MoraTile extends ConsumerWidget {
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
-                initialValue: resultado,
+                value: resultado,
                 decoration: const InputDecoration(labelText: 'Resultado'),
                 items: const [
                   DropdownMenuItem(
