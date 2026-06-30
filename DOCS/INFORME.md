@@ -74,3 +74,20 @@ Con estas cuentas se ingresa directamente desde la app instalada en el dispositi
 * **Cliente Caso 2:** `caso02.cliente@bbva.pe`
 * **Cliente Caso 3:** `caso03.cliente@bbva.pe`
 * **Cliente General:** `client.demo@bbva.pe`
+
+---
+
+## 📈 4. Tasas de Interés y Condiciones de Crédito (Simulador)
+
+El ecosistema utiliza parámetros financieros estandarizados para el cálculo de cuotas de las solicitudes de los clientes (créditos empresariales / microempresa). Estas tasas se aplican automáticamente tanto en el simulador de la **App Kotlin** como en las reevaluaciones hechas por el analista en la **App Flutter**.
+
+### Tarifario de Préstamos:
+* **TEA base (Con Seguro de Desgravamen):** `40.92%` (Tasa preferencial recomendada)
+* **TEA base (Sin Seguro de Desgravamen):** `43.92%`
+* *(Adicionalmente, en ciertas campañas preaprobadas se maneja una TEA referencial del `60.00%` para segmentos de mayor riesgo)*.
+
+### Modelo de Amortización:
+Todos los préstamos operan bajo el sistema de **Amortización Francesa**, lo que significa que el cliente pagará una **cuota fija mensual**.
+* Para el cálculo, la Tasa Efectiva Anual (TEA) se convierte a **Tasa Efectiva Mensual (TEM)** usando la fórmula estándar: 
+  `TEM = (1 + TEA)^(1/12) - 1`
+* Las cuentas de ahorro vinculadas operan con una tasa pasiva por defecto del **`3.5% TEA`**.
