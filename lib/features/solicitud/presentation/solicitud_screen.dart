@@ -298,7 +298,7 @@ class _SolicitudScreenState extends ConsumerState<SolicitudScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: DropdownButtonFormField<String>(
-              initialValue: _estadoCivil,
+              value: _estadoCivil,
               decoration: const InputDecoration(labelText: 'Estado civil'),
               items: const ['Soltero', 'Casado', 'Conviviente', 'Divorciado', 'Viudo']
                   .map((e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -309,7 +309,7 @@ class _SolicitudScreenState extends ConsumerState<SolicitudScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: DropdownButtonFormField<String>(
-              initialValue: _gradoInstruccion,
+              value: _gradoInstruccion,
               decoration:
                   const InputDecoration(labelText: 'Grado de instruccion'),
               items: const ['Primaria', 'Secundaria', 'Tecnico', 'Universitario']
@@ -337,7 +337,7 @@ class _SolicitudScreenState extends ConsumerState<SolicitudScreen> {
       case 1:
         return Column(children: [
           DropdownButtonFormField<String>(
-            initialValue: _tipoNegocio,
+            value: _tipoNegocio,
             decoration: const InputDecoration(labelText: 'Tipo de negocio'),
             items: const [
               DropdownMenuItem(value: 'Comercio', child: Text('Comercio')),
@@ -448,7 +448,7 @@ class _PasoCondiciones extends StatelessWidget {
           onChanged: onMonto,
         ),
         DropdownButtonFormField<int>(
-          initialValue: plazo,
+          value: plazo,
           decoration: const InputDecoration(labelText: 'Plazo (meses)'),
           items: const [3, 6, 12, 18, 24, 36, 48, 60]
               .map((m) => DropdownMenuItem(value: m, child: Text('$m meses')))

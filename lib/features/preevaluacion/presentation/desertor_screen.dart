@@ -85,7 +85,7 @@ class _DesertorScreenState extends ConsumerState<DesertorScreen> {
           _campo(_doc, 'Documento (DNI)', numerico: true, max: 8),
           const SizedBox(height: 4),
           DropdownButtonFormField<String>(
-            initialValue: _motivo,
+            value: _motivo,
             decoration: const InputDecoration(labelText: 'Motivo de desercion'),
             items: _motivos
                 .map((m) => DropdownMenuItem(value: m, child: Text(m)))
@@ -96,7 +96,7 @@ class _DesertorScreenState extends ConsumerState<DesertorScreen> {
           _campo(_institucion, 'Institucion a la que migro (si se conoce)'),
           const SizedBox(height: 4),
           DropdownButtonFormField<String>(
-            initialValue: _probabilidad,
+            value: _probabilidad,
             decoration:
                 const InputDecoration(labelText: 'Probabilidad de retorno'),
             items: const ['Alta', 'Media', 'Baja']

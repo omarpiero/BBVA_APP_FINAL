@@ -222,7 +222,7 @@ class _AsesoresViewState extends State<AsesoresView> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      initialValue: selectedTipo,
+                      value: selectedTipo,
                       decoration: const InputDecoration(labelText: 'Tipo de Gestión'),
                       items: const [
                         DropdownMenuItem(value: 'RENOVACION', child: Text('RENOVACION')),

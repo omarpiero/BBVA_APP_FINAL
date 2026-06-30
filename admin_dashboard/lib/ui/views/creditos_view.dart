@@ -168,7 +168,7 @@ class _CreditosViewState extends State<CreditosView> {
               SizedBox(
                 width: 220,
                 child: DropdownButtonFormField<String>(
-                  initialValue: estadoFiltro,
+                  value: estadoFiltro,
                   decoration: const InputDecoration(labelText: 'Estado'),
                   items: const [
                     DropdownMenuItem(value: 'todos', child: Text('Todos')),
