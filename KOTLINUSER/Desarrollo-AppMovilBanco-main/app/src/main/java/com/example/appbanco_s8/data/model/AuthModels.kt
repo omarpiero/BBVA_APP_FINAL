@@ -21,7 +21,13 @@ data class AuthResponse(
 
 data class UserData(
     val id:    String = "",
-    val email: String = ""
+    val email: String = "",
+    @SerializedName("app_metadata") val appMetadata: AppMetadata? = null
+)
+
+/** Metadatos del usuario emitidos por el backend dentro del JWT. */
+data class AppMetadata(
+    val role: String? = null
 )
 
 data class LockoutRpcRequest(

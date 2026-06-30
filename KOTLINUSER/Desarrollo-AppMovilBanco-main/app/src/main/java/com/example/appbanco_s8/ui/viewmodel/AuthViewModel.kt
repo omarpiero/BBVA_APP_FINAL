@@ -57,9 +57,27 @@ class AuthViewModel : ViewModel() {
             // 2. Perform authenticating call
             val result = repository.login(email.trim(), password)
             if (result.isSuccess) {
+                val data = result.getOrNull()!!
+
+                // Control de acceso por rol (RBAC). El rol viaja firmado en el
+                // JWT (app_metadata.role). Esta app es exclusiva del cliente
+                // final: un asesor o administrador con credenciales válidas es
+                // rechazado aquí.
+                val role = data.user?.appMetadata?.role
+                if (role != null && role != "cliente") {
+                    // Credenciales válidas pero de otro aplicativo: no es un
+                    // intento fallido, así que reseteamos el contador.
+                    failedAttempts = 0
+                    repository.resetearIntentosFallidos(email.trim())
+                    _uiState.value = AuthUiState.Error(
+                        "Esta cuenta no corresponde a la App Clientes. " +
+                        "Usa la aplicación del rol que te corresponde."
+                    )
+                    return@launch
+                }
+
                 failedAttempts = 0
                 repository.resetearIntentosFallidos(email.trim())
-                val data = result.getOrNull()!!
                 _uiState.value = AuthUiState.Success(token = data.accessToken, email = data.user?.email ?: email)
             } else {
                 failedAttempts++

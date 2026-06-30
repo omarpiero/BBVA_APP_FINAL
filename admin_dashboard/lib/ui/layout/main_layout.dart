@@ -65,8 +65,8 @@ class MainLayout extends StatelessWidget {
           _NavItem(
             title: 'Dashboard',
             icon: Icons.dashboard_rounded,
-            isSelected: currentPath == '/',
-            onTap: () => context.go('/'),
+            isSelected: currentPath == '/panel',
+            onTap: () => context.go('/panel'),
           ),
           _NavItem(
             title: 'Creditos',
@@ -156,7 +156,7 @@ class MainLayout extends StatelessWidget {
             child: IconButton.filledTonal(
               onPressed: () async {
                 await Supabase.instance.client.auth.signOut();
-                if (context.mounted) context.go('/login');
+                if (context.mounted) context.go('/');
               },
               icon: const Icon(Icons.logout_rounded),
             ),

@@ -175,26 +175,33 @@ class LoginViewModel extends StateNotifier<AuthState> {
       await _repo.guardarEstadoBloqueo(intentos: intentos, hasta: actualHasta);
     } catch (e) {
       final client = supabase.Supabase.instance.client;
-      final failRes = await client.rpc('bbva_registrar_intento_fallido', params: {
-        'p_username': email,
-        'p_tipo_usuario': 'asesor',
-      });
+      try {
+        final failRes = await client.rpc('bbva_registrar_intento_fallido', params: {
+          'p_username': email,
+          'p_tipo_usuario': 'asesor',
+        });
 
-      final bool dbBloqueado = failRes['bloqueado'] as bool? ?? false;
-      final hastaStr = failRes['bloqueado_hasta'] as String?;
-      final hasta = hastaStr != null ? DateTime.tryParse(hastaStr) : null;
-      final intentos = failRes['intentos_fallidos'] as int? ?? (state.intentosFallidos + 1);
-      final actualHasta = dbBloqueado ? (hasta ?? DateTime.now().add(const Duration(hours: 24))) : state.bloqueadoHasta;
+        final bool dbBloqueado = failRes['bloqueado'] as bool? ?? false;
+        final hastaStr = failRes['bloqueado_hasta'] as String?;
+        final hasta = hastaStr != null ? DateTime.tryParse(hastaStr) : null;
+        final intentos = failRes['intentos_fallidos'] as int? ?? (state.intentosFallidos + 1);
+        final actualHasta = dbBloqueado ? (hasta ?? DateTime.now().add(const Duration(hours: 24))) : state.bloqueadoHasta;
 
-      state = state.copyWith(
-        status: AuthStatus.error,
-        error: dbBloqueado
-            ? 'Usuario bloqueado por múltiples intentos fallidos.'
-            : '$e',
-        intentosFallidos: intentos,
-        bloqueadoHasta: actualHasta,
-      );
-      await _repo.guardarEstadoBloqueo(intentos: intentos, hasta: actualHasta);
+        state = state.copyWith(
+          status: AuthStatus.error,
+          error: dbBloqueado
+              ? 'Usuario bloqueado por múltiples intentos fallidos.'
+              : '$e',
+          intentosFallidos: intentos,
+          bloqueadoHasta: actualHasta,
+        );
+        await _repo.guardarEstadoBloqueo(intentos: intentos, hasta: actualHasta);
+      } catch (innerError) {
+        state = state.copyWith(
+          status: AuthStatus.error,
+          error: 'Error de comunicación con el servidor: $e',
+        );
+      }
     }
   }
 
